@@ -635,14 +635,6 @@ struct SSLCipherPreferenceList {
 // AllCiphers returns an array of all supported ciphers, sorted by id.
 Span<const SSL_CIPHER> AllCiphers();
 
-
-//JA3 MOD BEGIN
-bool is_tls_extension_exists(uint16_t value);
-//JA3 MOD END
-
-
-
-
 // ssl_cipher_get_evp_aead sets |*out_aead| to point to the correct EVP_AEAD
 // object for |cipher| protocol version |version|. It sets |*out_mac_secret_len|
 // and |*out_fixed_iv_len| to the MAC key length and fixed IV length,

@@ -147,9 +147,6 @@
  * OTHERWISE.
  */
 
-
-#include "ja3/ssl_ja3.h"
-
 #include <openssl/ssl.h>
 
 #include <assert.h>
@@ -173,8 +170,6 @@
 
 #include "../crypto/internal.h"
 #include "internal.h"
-
-
 
 
 BSSL_NAMESPACE_BEGIN
@@ -228,39 +223,8 @@ static bool ssl_add_tls13_cipher(CBB *cbb, uint16_t cipher_id,
   return true;
 }
 
-
-// JA3 ADDED
-static bool ssl_write_client_cipher_as_is(const SSL_HANDSHAKE *hs, CBB *out){
-  CBB child;
-  if (!CBB_add_u16_length_prefixed(out, &child)) {
-    return 0;
-  }
-
-  ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  for (uint16_t cipher : ja3.cipher_suites_) {
-    if (!CBB_add_u16(&child, cipher)) {
-      return 0;
-    }
-  }
-
-  return CBB_flush(out);
-}
-
-
-// JA3 MODIFIED
 static bool ssl_write_client_cipher_list(const SSL_HANDSHAKE *hs, CBB *out,
                                          ssl_client_hello_type_t type) {
-
-  // JA3 MOD BEGIN
-  ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  
-  if(!ja3.need_check){
-    return ssl_write_client_cipher_as_is(hs,out);
-  }
-  // JA3 MOD END
-  
-  
-  
   const SSL *const ssl = hs->ssl;
   uint32_t mask_a, mask_k;
   ssl_get_client_disabled(hs, &mask_a, &mask_k);
@@ -373,15 +337,6 @@ bool ssl_write_client_hello_without_extensions(const SSL_HANDSHAKE *hs,
 
 bool ssl_add_client_hello(SSL_HANDSHAKE *hs) {
   SSL *const ssl = hs->ssl;
-
-  //JA3 MOD BEGIN
-  ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  //uint16_t v1 = ja3.GetVersion();
-  uint16_t orig_hsClientVersion = hs->client_version;
-  hs->client_version = ja3.version_;
-  //JA3 MOD END
-
-
   ScopedCBB cbb;
   CBB body;
   ssl_client_hello_type_t type = hs->selected_ech_config
@@ -395,7 +350,6 @@ bool ssl_add_client_hello(SSL_HANDSHAKE *hs) {
       !ssl_add_clienthello_tlsext(hs, &body, /*out_encoded=*/nullptr,
                                   &needs_psk_binder, type, CBB_len(&body)) ||
       !ssl->method->finish_message(ssl, cbb.get(), &msg)) {
-      hs->client_version = orig_hsClientVersion;
     return false;
   }
 
@@ -407,12 +361,10 @@ bool ssl_add_client_hello(SSL_HANDSHAKE *hs) {
     assert(type != ssl_client_hello_outer);
     if (!tls13_write_psk_binder(hs, hs->transcript, MakeSpan(msg),
                                 /*out_binder_len=*/0)) {
-      hs->client_version = orig_hsClientVersion;
       return false;
     }
   }
 
-  hs->client_version = orig_hsClientVersion;
   return ssl->method->add_message(ssl, std::move(msg));
 }
 
