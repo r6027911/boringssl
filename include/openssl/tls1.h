@@ -261,6 +261,20 @@ extern "C" {
 // This is not an IANA defined extension number
 #define TLSEXT_TYPE_channel_id 30032
 
+//JA3 MOD BEGIN
+
+#define TLSEXT_TYPE_record_size_limit 28
+#define TLSEXT_TYPE_max_fragment_length 1
+#define TLSEXT_TYPE_truncated_hmac 4
+
+
+//JA3 MOD END
+
+
+
+
+
+
 // status request value from RFC 3546
 #define TLSEXT_STATUSTYPE_nothing (-1)
 #define TLSEXT_STATUSTYPE_ocsp 1
@@ -287,6 +301,7 @@ extern "C" {
 // From https://www.rfc-editor.org/rfc/rfc8879.html#section-3
 #define TLSEXT_cert_compression_zlib 1
 #define TLSEXT_cert_compression_brotli 2
+#define TLSEXT_cert_compression_zstd 3
 
 #define TLSEXT_MAXLEN_host_name 255
 

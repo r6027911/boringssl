@@ -1,5 +1,8 @@
 set (CMAKE_CXX_STANDARD 17)
 
+file(GLOB_RECURSE JA3_HEADERS ja3/*.h)
+
+
 add_library(
   ssl
 
@@ -41,6 +44,9 @@ add_library(
   tls13_enc.cc
   tls13_server.cc
   ja3/ssl_ja3.cc
+  ja3/extensions/cert_compression.cc
+
+  ${JA3_HEADERS}
 
 )
 # Although libssl also provides headers that require an include directory, the

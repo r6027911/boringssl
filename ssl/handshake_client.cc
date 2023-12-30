@@ -253,12 +253,12 @@ static bool ssl_write_client_cipher_list(const SSL_HANDSHAKE *hs, CBB *out,
 
   // JA3 MOD BEGIN
   ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  
-  if(!ja3.need_check){
-    return ssl_write_client_cipher_as_is(hs,out);
+  if (ja3.custom_ext_.size() > 0) {
+    if (!ja3.need_check) {
+      return ssl_write_client_cipher_as_is(hs, out);
+    }
+    // JA3 MOD END
   }
-  // JA3 MOD END
-  
   
   
   const SSL *const ssl = hs->ssl;
@@ -375,11 +375,14 @@ bool ssl_add_client_hello(SSL_HANDSHAKE *hs) {
   SSL *const ssl = hs->ssl;
 
   //JA3 MOD BEGIN
+   uint16_t orig_hsClientVersion = hs->client_version;
   ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  //uint16_t v1 = ja3.GetVersion();
-  uint16_t orig_hsClientVersion = hs->client_version;
-  hs->client_version = ja3.version_;
-  //JA3 MOD END
+  if (ja3.custom_ext_.size() > 0) {
+    // uint16_t v1 = ja3.GetVersion();
+
+    hs->client_version = ja3.version_;
+    // JA3 MOD END
+  }
 
 
   ScopedCBB cbb;
@@ -532,21 +535,23 @@ static enum ssl_hs_wait_t do_start_connect(SSL_HANDSHAKE *hs) {
 
   // If the configured session has expired or is not usable, drop it. We also do
   // not offer sessions on renegotiation.
-  if (ssl->session != nullptr) {
-    if (ssl->session->is_server ||
-        !ssl_supports_version(hs, ssl->session->ssl_version) ||
-        // Do not offer TLS 1.2 sessions with ECH. ClientHelloInner does not
-        // offer TLS 1.2, and the cleartext session ID may leak the server
-        // identity.
-        (hs->selected_ech_config &&
-         ssl_session_protocol_version(ssl->session.get()) < TLS1_3_VERSION) ||
-        !SSL_SESSION_is_resumable(ssl->session.get()) ||
-        !ssl_session_is_time_valid(ssl, ssl->session.get()) ||
-        (ssl->quic_method != nullptr) != ssl->session->is_quic ||
-        ssl->s3->initial_handshake_complete) {
-      ssl_set_session(ssl, nullptr);
-    }
-  }
+  //JA3 MOD BEGIN - COMMENTED
+  //if (ssl->session != nullptr) {
+  //  if (ssl->session->is_server ||
+  //      !ssl_supports_version(hs, ssl->session->ssl_version) ||
+  //      // Do not offer TLS 1.2 sessions with ECH. ClientHelloInner does not
+  //      // offer TLS 1.2, and the cleartext session ID may leak the server
+  //      // identity.
+  //      (hs->selected_ech_config &&
+  //       ssl_session_protocol_version(ssl->session.get()) < TLS1_3_VERSION) ||
+  //      !SSL_SESSION_is_resumable(ssl->session.get()) ||
+  //      !ssl_session_is_time_valid(ssl, ssl->session.get()) ||
+  //      (ssl->quic_method != nullptr) != ssl->session->is_quic ||
+  //      ssl->s3->initial_handshake_complete) {
+  //    ssl_set_session(ssl, nullptr);
+  //  }
+  //}
+  //JA3 MOD END
 
   if (!RAND_bytes(ssl->s3->client_random, sizeof(ssl->s3->client_random))) {
     return ssl_hs_error;

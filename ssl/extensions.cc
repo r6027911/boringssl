@@ -1811,38 +1811,36 @@ static bool ext_srtp_add_serverhello(SSL_HANDSHAKE *hs, CBB *out) {
 
 static bool ext_ec_point_add_extension(const SSL_HANDSHAKE *hs, CBB *out) {
   
-//JA3 MOD BEGIN
-CBB contents, formats;
-  if (!CBB_add_u16(out, TLSEXT_TYPE_ec_point_formats) ||
-      !CBB_add_u16_length_prefixed(out, &contents) ||
-      !CBB_add_u8_length_prefixed(&contents, &formats)){
-    return false;
-  }
+    CBB contents, formats;
 
-  ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  for (uint8_t group : ja3.custom_points_) {
-    if (!CBB_add_u8(&formats, group)) {
+//JA3 MOD BEGIN
+    ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
+    if (ja3.custom_ext_.size() > 0) {
+    if (!CBB_add_u16(out, TLSEXT_TYPE_ec_point_formats) ||
+        !CBB_add_u16_length_prefixed(out, &contents) ||
+        !CBB_add_u8_length_prefixed(&contents, &formats)) {
       return false;
     }
-  }
 
-  return CBB_flush(out);
-//JA3 MOD END
+    for (uint8_t group : ja3.custom_points_) {
+      if (!CBB_add_u8(&formats, group)) {
+        return false;
+      }
+    }
 
+    return CBB_flush(out);
+    // JA3 MOD END
+    } else {
+    if (!CBB_add_u16(out, TLSEXT_TYPE_ec_point_formats) ||
+        !CBB_add_u16_length_prefixed(out, &contents) ||
+        !CBB_add_u8_length_prefixed(&contents, &formats) ||
+        !CBB_add_u8(&formats, TLSEXT_ECPOINTFORMAT_uncompressed) ||
+        !CBB_flush(out)) {
+            return false;
+        }
+    }  
 
-//JA3 MOD COMMENTS
-  // CBB contents, formats;
-  // if (!CBB_add_u16(out, TLSEXT_TYPE_ec_point_formats) ||
-  //     !CBB_add_u16_length_prefixed(out, &contents) ||
-  //     !CBB_add_u8_length_prefixed(&contents, &formats) ||
-  //     !CBB_add_u8(&formats, TLSEXT_ECPOINTFORMAT_uncompressed) 
-  //     ||
-  //     !CBB_flush(out)
-  //     ) {
-  //   return false;
-  // }
-
-  // return true;
+   return true;
 }
 
 static bool ext_ec_point_add_clienthello(const SSL_HANDSHAKE *hs, CBB *out,
@@ -1938,7 +1936,7 @@ static bool should_offer_psk(const SSL_HANDSHAKE *hs,
 
   return true;
 }
-/*
+//*
 static size_t ext_pre_shared_key_clienthello_length(
     const SSL_HANDSHAKE *hs, ssl_client_hello_type_t type) {
   const SSL *const ssl = hs->ssl;
@@ -1949,7 +1947,7 @@ static size_t ext_pre_shared_key_clienthello_length(
   size_t binder_len = EVP_MD_size(ssl_session_get_digest(ssl->session.get()));
   return 15 + ssl->session->ticket.size() + binder_len;
 }
-*/
+//*/
 static bool ext_pre_shared_key_add_clienthello(const SSL_HANDSHAKE *hs,
                                                CBB *out, bool *out_needs_binder,
                                                ssl_client_hello_type_t type) {
@@ -3313,6 +3311,91 @@ static const struct tls_extension kExtensions[] = {
     ignore_parse_clienthello,
     ext_alps_add_serverhello_old,
   },
+
+  //JA3 MOD BEGIN
+  //  struct tls_extension{
+  //      uint16_t value;
+  //      bool (*add_clienthello)(const SSL_HANDSHAKE *hs, CBB *out,CBB *out_compressible, ssl_client_hello_type_t type);
+  //      bool (*parse_serverhello)(SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents);
+  //      bool (*parse_clienthello)(SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents);
+  //      bool (*add_serverhello)(SSL_HANDSHAKE *hs, CBB *out);
+  //  }
+
+  {
+    TLSEXT_TYPE_record_size_limit,
+    //add_clienthello,
+        [](const SSL_HANDSHAKE *hs, CBB *out, CBB *out_compressible,
+           ssl_client_hello_type_t type) -> bool {
+         
+          CBB_add_u16(out_compressible, TLSEXT_TYPE_record_size_limit);
+          CBB_add_u16(out_compressible, 2);
+          CBB_add_u16(out_compressible, 16385);          
+
+          return CBB_flush(out_compressible);
+        },
+    //parse_serverhello
+        [](SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents) -> bool {
+          return true;
+        },
+    
+    //parse_clienthello
+        [](SSL_HANDSHAKE *hs, uint8_t *out_alert,CBS *contents) -> bool{ return true;},
+    
+    //add_serverhello
+     [](SSL_HANDSHAKE *hs, CBB *out)->bool { return true; }
+  },
+    {TLSEXT_TYPE_max_fragment_length,
+     // add_clienthello,
+     [](const SSL_HANDSHAKE *hs, CBB *out, CBB *out_compressible,
+        ssl_client_hello_type_t type) -> bool {
+       CBB_add_u16(out_compressible, TLSEXT_TYPE_max_fragment_length);
+       CBB_add_u16(out_compressible, 2);
+       CBB_add_u16(out_compressible, 16385);
+             
+       return CBB_flush(out_compressible);
+     },
+     // parse_serverhello
+     [](SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents) -> bool {
+       return true;
+     },
+
+     // parse_clienthello
+     [](SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents) -> bool {
+       return true;
+     },
+
+     // add_serverhello
+     [](SSL_HANDSHAKE *hs, CBB *out) -> bool { return true; }},
+
+  {TLSEXT_TYPE_truncated_hmac,
+     // add_clienthello,
+     [](const SSL_HANDSHAKE *hs, CBB *out, CBB *out_compressible,
+        ssl_client_hello_type_t type) -> bool {
+       CBB_add_u16(out_compressible, TLSEXT_TYPE_truncated_hmac);
+       CBB_add_u16(out_compressible, 0);
+
+       return CBB_flush(out_compressible);
+     },
+     // parse_serverhello
+     [](SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents) -> bool {
+       return true;
+     },
+
+     // parse_clienthello
+     [](SSL_HANDSHAKE *hs, uint8_t *out_alert, CBS *contents) -> bool {
+       return true;
+     },
+
+     // add_serverhello
+     [](SSL_HANDSHAKE *hs, CBB *out) -> bool { return true; }},
+
+     
+
+  //JA3 MOD END
+
+
+
+
 };
 
 #define kNumExtensions (sizeof(kExtensions) / sizeof(struct tls_extension))
@@ -3351,6 +3434,10 @@ bool ssl_setup_extension_permutation(SSL_HANDSHAKE *hs) {
 //JA3 MOD BEGIN
 bool is_tls_extension_exists(uint16_t value) {
   unsigned i;
+  if (value == TLSEXT_TYPE_padding || value == TLSEXT_TYPE_pre_shared_key) {
+    return true;
+  }
+
   for (i = 0; i < kNumExtensions; i++) {
     if (kExtensions[i].value == value) {
       return true;
@@ -3416,33 +3503,71 @@ static bool ssl_add_clienthello_tlsext_inner(SSL_HANDSHAKE *hs, CBB *out,
     }
   }
 
-  for (size_t unpermuted = 0; unpermuted < kNumExtensions; unpermuted++) {
-    size_t i = hs->extension_permutation.empty()
-                   ? unpermuted
-                   : hs->extension_permutation[unpermuted];
-    const size_t len_before = CBB_len(&extensions);
-    const size_t len_compressed_before = CBB_len(compressed.get());
-    if (!kExtensions[i].add_clienthello(hs, &extensions, compressed.get(),
-                                        ssl_client_hello_inner)) {
-      OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
-      ERR_add_error_dataf("extension %u", (unsigned)kExtensions[i].value);
-      return false;
-    }
+  //JA3 MOD BEGIN
+  ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
+  if (ja3.custom_ext_.size() > 0) {
+    for (size_t unpermuted = 0; unpermuted < kNumExtensions; unpermuted++) {
+      size_t i = hs->extension_permutation.empty()
+                     ? unpermuted
+                     : hs->extension_permutation[unpermuted];
 
-    const size_t bytes_written = CBB_len(&extensions) - len_before;
-    const size_t bytes_written_compressed =
-        CBB_len(compressed.get()) - len_compressed_before;
-    // The callback may write to at most one output.
-    assert(bytes_written == 0 || bytes_written_compressed == 0);
-    if (bytes_written != 0 || bytes_written_compressed != 0) {
-      hs->inner_extensions_sent |= (1u << i);
+      if (ja3.isExtensionActive(kExtensions[i].value)) {
+        const size_t len_before = CBB_len(&extensions);
+        const size_t len_compressed_before = CBB_len(compressed.get());
+        if (!kExtensions[i].add_clienthello(hs, &extensions, compressed.get(),
+                                            ssl_client_hello_inner)) {
+          OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
+          ERR_add_error_dataf("extension %u", (unsigned)kExtensions[i].value);
+          return false;
+        }
+
+        const size_t bytes_written = CBB_len(&extensions) - len_before;
+        const size_t bytes_written_compressed =
+            CBB_len(compressed.get()) - len_compressed_before;
+        // The callback may write to at most one output.
+        assert(bytes_written == 0 || bytes_written_compressed == 0);
+        if (bytes_written != 0 || bytes_written_compressed != 0) {
+          hs->inner_extensions_sent |= (1u << i);
+        }
+        // If compressed, update the running ech_outer_extensions extension.
+        if (bytes_written_compressed != 0 &&
+            !CBB_add_u16(outer_extensions.get(), kExtensions[i].value)) {
+          return false;
+        }
+      }
     }
-    // If compressed, update the running ech_outer_extensions extension.
-    if (bytes_written_compressed != 0 &&
-        !CBB_add_u16(outer_extensions.get(), kExtensions[i].value)) {
-      return false;
+    // JA3 MOD END
+  } else {
+    for (size_t unpermuted = 0; unpermuted < kNumExtensions; unpermuted++) {
+      size_t i = hs->extension_permutation.empty()
+                     ? unpermuted
+                     : hs->extension_permutation[unpermuted];
+      const size_t len_before = CBB_len(&extensions);
+      const size_t len_compressed_before = CBB_len(compressed.get());
+      if (!kExtensions[i].add_clienthello(hs, &extensions, compressed.get(),
+                                          ssl_client_hello_inner)) {
+        OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
+        ERR_add_error_dataf("extension %u", (unsigned)kExtensions[i].value);
+        return false;
+      }
+
+      const size_t bytes_written = CBB_len(&extensions) - len_before;
+      const size_t bytes_written_compressed =
+          CBB_len(compressed.get()) - len_compressed_before;
+      // The callback may write to at most one output.
+      assert(bytes_written == 0 || bytes_written_compressed == 0);
+      if (bytes_written != 0 || bytes_written_compressed != 0) {
+        hs->inner_extensions_sent |= (1u << i);
+      }
+      // If compressed, update the running ech_outer_extensions extension.
+      if (bytes_written_compressed != 0 &&
+          !CBB_add_u16(outer_extensions.get(), kExtensions[i].value)) {
+        return false;
+      }
     }
   }
+  
+  
 
   if (ssl->ctx->grease_enabled) {
     // Add a fake non-empty extension. See RFC 8701. This always matches
@@ -3500,20 +3625,27 @@ bool ssl_add_clienthello_tlsext(SSL_HANDSHAKE *hs, CBB *out, CBB *out_encoded,
   
   //JA3 MOD BEGIN
   ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
-  ja3.LogMessage("called ssl_add_clienthello_tlsext");
-  uint16_t prev_max_version = hs->max_version;
-  hs->max_version = 772;
+  if (ja3.custom_ext_.size() > 0) {
+    ja3.LogMessage("called ssl_add_clienthello_tlsext");
+    if (ja3.custom_ext_.size() > 0) {
+     // uint16_t prev_max_version = hs->max_version;
+      hs->max_version = 772;
 
-  hs->ssl->config->ocsp_stapling_enabled = true;
-  hs->ssl->config->ech_grease_enabled = true;
-  hs->ssl->config->ocsp_stapling_enabled = true;
-  hs->ssl->config->signed_cert_timestamps_enabled = true;
-  //JA3 MOD END
-  
-  
+
+      size_t sz = ja3.custom_supported_group_list_.size();
+      hs->config->supported_group_list.Init(sz);
+      for (size_t i = 0; i < sz; i++) {
+        hs->config->supported_group_list[i] =
+            ja3.custom_supported_group_list_[i];
+      }
+    }
+   
+   // JA3 MOD END
+  } 
+    
   *out_needs_psk_binder = false;
 
-  if (type == ssl_client_hello_inner) {
+  if (type == ssl_client_hello_inner) {    
     return ssl_add_clienthello_tlsext_inner(hs, out, out_encoded,
                                             out_needs_psk_binder);
   }
@@ -3538,77 +3670,62 @@ bool ssl_add_clienthello_tlsext(SSL_HANDSHAKE *hs, CBB *out, CBB *out_encoded,
     return false;
   }
 
-
+  bool last_was_empty = false;
 
 //JA3 MOD BEGIN
-  // uint16_t custom_ext[] = {65281, 0, 23, 13, 5, 18, 16, 11, 51, 45, 43, 10,
-  // 21}; uint16_t custom_supported_group_list[] = {29, 23, 24, 25}; size_t sz =
-  // OPENSSL_ARRAY_SIZE(custom_supported_group_list);
-  size_t sz = ja3.custom_supported_group_list_.size();
-  hs->config->supported_group_list.Init(sz);
-  for (size_t i = 0; i < sz; i++) {
-    hs->config->supported_group_list[i] = ja3.custom_supported_group_list_[i];
-  }
-  
-  bool last_was_empty = false;
-  for (size_t f = 0; f < ja3.custom_ext_.size(); f++) {
-    for (size_t j = 0; j < kNumExtensions; j++) {
-      if (kExtensions[j].value == ja3.custom_ext_[f]) {
-        const size_t len_before = CBB_len(&extensions);
-        if (!kExtensions[j].add_clienthello(hs, &extensions, &extensions, type)) {
-          OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
-          ERR_add_error_dataf("extension %u", (unsigned)kExtensions[j].value);
-          return false;
-        }
+ if (ja3.custom_ext_.size() > 0) {
 
-        const size_t bytes_written = CBB_len(&extensions) - len_before;
-        if (bytes_written != 0) {
-          hs->extensions.sent |= (1u << j);
+      for (size_t j = 0; j < kNumExtensions; j++) {
+        if (ja3.isExtensionActive(kExtensions[j].value)) {
+          const size_t len_before = CBB_len(&extensions);
+          if (!kExtensions[j].add_clienthello(hs, &extensions, &extensions, type)) {
+            OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
+            ERR_add_error_dataf("extension %u", (unsigned)kExtensions[j].value);
+            return false;
+          }
+
+          const size_t bytes_written = CBB_len(&extensions) - len_before;
+          if (bytes_written != 0) {
+            hs->extensions.sent |= (1u << j);
+          }
+          // If the difference in lengths is only four bytes then the extension
+          // had an empty body.
+          last_was_empty = (bytes_written == 4);
         }
-        // If the difference in lengths is only four bytes then the extension
-        // had an empty body.
-        last_was_empty = (bytes_written == 4);
-        break;
       }
+
+      // JA3 MOD END
+    
+ } else {
+    last_was_empty = false;
+    for (size_t unpermuted = 0; unpermuted < kNumExtensions; unpermuted++) {
+      size_t i = hs->extension_permutation.empty()
+                     ? unpermuted
+                     : hs->extension_permutation[unpermuted];
+      const size_t len_before = CBB_len(&extensions);
+      if (!kExtensions[i].add_clienthello(hs, &extensions, &extensions, type)) {
+          OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
+          ERR_add_error_dataf("extension %u", (unsigned)kExtensions[i].value);
+          return false;
+      }
+
+      const size_t bytes_written = CBB_len(&extensions) - len_before;
+      if (bytes_written != 0) {
+          hs->extensions.sent |= (1u << i);
+      }
+      // If the difference in lengths is only four bytes then the extension
+      //   had
+      // an empty body.
+      last_was_empty = (bytes_written == 4);
     }
-  }
-//JA3 MOD END
-
-
-
-
-
-
-//JA3 MOD COMMENTS
-  // bool last_was_empty = false;
-  // for (size_t unpermuted = 0; unpermuted < kNumExtensions; unpermuted++) {
-  //   size_t i = hs->extension_permutation.empty()
-  //                  ? unpermuted
-  //                  : hs->extension_permutation[unpermuted];
-  //   const size_t len_before = CBB_len(&extensions);
-  //   if (!kExtensions[i].add_clienthello(hs, &extensions, &extensions, type)) {
-  //     OPENSSL_PUT_ERROR(SSL, SSL_R_ERROR_ADDING_EXTENSION);
-  //     ERR_add_error_dataf("extension %u", (unsigned)kExtensions[i].value);
-  //     return false;
-  //   }
-
-  //   const size_t bytes_written = CBB_len(&extensions) - len_before;
-  //   if (bytes_written != 0) {
-  //     hs->extensions.sent |= (1u << i);
-  //   }
-  //   // If the difference in lengths is only four bytes then the extension had
-  //   // an empty body.
-  //   last_was_empty = (bytes_written == 4);
-  // }
-
-
+ }
 
   //JS3 MOD BEGIN
-  hs->max_version = prev_max_version;
+  //hs->max_version = prev_max_version;
   //JS3 MOD END
-  return CBB_flush(out);
+  //return CBB_flush(out);
 
-  /*
+  //*
 
   if (ssl->ctx->grease_enabled) {
     // Add a fake non-empty extension. See RFC 8701.
@@ -3682,7 +3799,7 @@ bool ssl_add_clienthello_tlsext(SSL_HANDSHAKE *hs, CBB *out, CBB *out_encoded,
   }
 
   return CBB_flush(out);
-  */
+  
 }
 
 bool ssl_add_serverhello_tlsext(SSL_HANDSHAKE *hs, CBB *out) {
