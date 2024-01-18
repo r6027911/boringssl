@@ -237,10 +237,12 @@ static bool ssl_write_client_cipher_as_is(const SSL_HANDSHAKE *hs, CBB *out){
   }
 
   ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
+  //CBB_add_u16(&child, ja3.cipher_suites_.at(0));
   for (uint16_t cipher : ja3.cipher_suites_) {
     if (!CBB_add_u16(&child, cipher)) {
       return 0;
     }
+    
   }
 
   return CBB_flush(out);

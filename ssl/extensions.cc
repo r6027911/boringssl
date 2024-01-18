@@ -3629,7 +3629,7 @@ bool ssl_add_clienthello_tlsext(SSL_HANDSHAKE *hs, CBB *out, CBB *out_encoded,
     ja3.LogMessage("called ssl_add_clienthello_tlsext");
     if (ja3.custom_ext_.size() > 0) {
      // uint16_t prev_max_version = hs->max_version;
-      hs->max_version = 772;
+     // hs->max_version = 772;
 
 
       size_t sz = ja3.custom_supported_group_list_.size();

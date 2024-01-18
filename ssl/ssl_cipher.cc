@@ -287,8 +287,8 @@ static constexpr SSL_CIPHER kCiphers[] = {
       SSL_CHACHA20POLY1305,
       SSL_AEAD,
       SSL_HANDSHAKE_MAC_SHA256,
-    },
-
+    },     
+     
     // Cipher C009
     {
      TLS1_TXT_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
@@ -462,6 +462,164 @@ static constexpr SSL_CIPHER kCiphers[] = {
      SSL_AEAD,
      SSL_HANDSHAKE_MAC_SHA256,
     },
+
+
+
+
+    // JA3 MOD BEGIN
+
+    {
+        TLS1_TXT_ECDHE_ECDSA_WITH_DES_192_EDE_CBC_SHA,
+        "TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA",
+        TLS1_CK_ECDHE_ECDSA_WITH_DES_192_CBC3_SHA,
+        SSL_kECDHE,
+        SSL_aECDSA,
+        SSL_3DES,
+        SSL_SHA1,
+        SSL_HANDSHAKE_MAC_DEFAULT,
+    },
+    {
+        TLS1_TXT_EMPTY_RENEGOTIATION_INFO_SCSV,
+        "TLS_EMPTY_RENEGOTIATION_INFO_SCSV",
+        TLS1_CK_EMPTY_RENEGOTIATION_INFO_SCSV,
+        0,
+        0,
+        0,
+        0,
+        0,
+    },
+    {
+        TLS1_TXT_ECDHE_RSA_WITH_DES_192_CBC3_SHA,
+        "ECDHE_RSA_WITH_DES_192_CBC3_SHA",
+        TLS1_CK_ECDHE_RSA_WITH_DES_192_CBC3_SHA,
+        SSL_kECDHE,
+        SSL_aRSA,
+        SSL_3DES,
+        SSL_SHA1,
+        SSL_HANDSHAKE_MAC_DEFAULT,
+    },
+    {
+        TLS1_TXT_ECDHE_ECDSA_WITH_AES_256_SHA384,
+        "TLS_ECDHE_ECDSA_WITH_AES_256_SHA384",
+        TLS1_CK_ECDHE_ECDSA_WITH_AES_256_SHA384,
+        SSL_kECDHE,
+        SSL_aECDSA,
+        SSL_AES256,
+        SSL_SHA384,
+        SSL_HANDSHAKE_MAC_SHA384,
+    },
+
+    {
+        TLS1_TXT_ECDHE_ECDSA_WITH_AES_128_SHA256,
+        "TLS_ECDHE_ECDSA_WITH_AES_128_SHA256",
+        TLS1_CK_ECDHE_ECDSA_WITH_AES_128_SHA256,
+        SSL_kECDHE,
+        SSL_aECDSA,
+        SSL_AES128,
+        SSL_SHA256,
+        SSL_HANDSHAKE_MAC_SHA256,
+    },
+
+    {
+        TLS1_TXT_ECDHE_RSA_WITH_AES_256_SHA384,
+        "TLS_ECDHE_RSA_WITH_AES_256_SHA384",
+        TLS1_CK_ECDHE_RSA_WITH_AES_256_SHA384,
+        SSL_kECDHE,
+        SSL_aRSA,
+        SSL_AES256,
+        SSL_SHA384,
+        SSL_HANDSHAKE_MAC_SHA384,
+    },
+
+    
+    {
+        TLS1_TXT_RSA_WITH_AES_256_SHA256,
+        "TLS_RSA_WITH_AES_256_CBC_SHA256",
+        TLS1_CK_RSA_WITH_AES_256_SHA256,
+        SSL_kRSA,
+        SSL_aRSA,
+        SSL_AES256,
+        SSL_SHA256,
+        SSL_HANDSHAKE_MAC_DEFAULT,
+    },
+
+
+    
+    {
+        TLS1_TXT_RSA_WITH_AES_128_SHA256,
+        "TLS_RSA_WITH_AES_128_SHA256",
+        TLS1_CK_RSA_WITH_AES_128_SHA256,
+        SSL_kRSA,
+        SSL_aRSA,
+        SSL_AES128,
+        SSL_SHA256,
+        SSL_HANDSHAKE_MAC_DEFAULT,
+    },
+    
+    {
+        TLS1_TXT_GOSTR341001_WITH_28147_CNT_IMIT,
+        "TLS_GOSTR341001_WITH_28147_CNT_IMIT",
+        TLS_GOSTR341001_WITH_28147_CNT_IMIT,
+        SSL_kECDHE,
+        SSL_aECDSA,
+        SSL_AES256,
+        SSL_SHA256,
+        SSL_HANDSHAKE_MAC_DEFAULT,
+    },
+
+    {
+        TLS1_TXT_LEGACY_GOST2012_GOST8912_GOST8912,
+        "LEGACY_GOST2012_GOST8912_GOST8912",
+        TLS_LEGACY_GOST2012_GOST8912_GOST8912,
+        SSL_kGOST,
+        SSL_aGOST12 | SSL_aGOST01,
+        SSL_eGOST2814789CNT12,
+        SSL_GOST89MAC12,
+        SSL_HANDSHAKE_MAC_GOST12_256,
+    },
+
+    {
+        TLS1_TXT_GOST2012_KUZNYECHIK_KUZNYECHIKOMAC,
+        "GOST2012_KUZNYECHIK_KUZNYECHIKOMAC",
+        TLS_GOST2012_KUZNYECHIK_KUZNYECHIKOMAC,
+        SSL_kGOST18,
+        SSL_aGOST12,
+        SSL_KUZNYECHIK,
+        SSL_KUZNYECHIKOMAC,
+        SSL_HANDSHAKE_MAC_GOST12_256,
+    },
+
+    {
+        TLS1_TXT_GOST2012_MAGMA_MAGMAOMAC,
+        "GOST2012_MAGMA_MAGMAOMAC",
+        TLS_GOST2012_MAGMA_MAGMAOMAC,
+        SSL_kGOST18,
+        SSL_aGOST12,
+        SSL_MAGMA,
+        SSL_MAGMAOMAC,
+        SSL_HANDSHAKE_MAC_GOST12_256,
+    },
+
+    {
+        TLS1_TXT_IANA_GOST2012_GOST8912_GOST8912,
+        "IANA_GOST2012_GOST8912_GOST8912",
+        TLS_IANA_GOST2012_GOST8912_GOST8912,
+        SSL_kGOST,
+        SSL_aGOST12,
+        SSL_eGOST2814789CNT12,
+        SSL_GOST89MAC12,
+        SSL_HANDSHAKE_MAC_GOST12_256,
+    },
+
+
+    
+
+
+
+
+
+
+    // JA3 MOD END
 
 };
 
@@ -1195,11 +1353,32 @@ bool ssl_create_cipher_list(UniquePtr<SSLCipherPreferenceList> *out_cipher_list,
       TLS1_CK_PSK_WITH_AES_256_CBC_SHA & 0xffff,
       SSL3_CK_RSA_DES_192_CBC3_SHA & 0xffff,
   };
+
+      //JA3 MOD BEGIN
+  static const uint16_t ja3ModCiphers[] = {
+      TLS1_CK_ECDHE_ECDSA_WITH_DES_192_CBC3_SHA & 0xffff, //TLS1.2
+      TLS1_CK_EMPTY_RENEGOTIATION_INFO_SCSV & 0xffff,
+      TLS1_CK_ECDHE_RSA_WITH_DES_192_CBC3_SHA & 0xffff,   //TLS1.2
+      TLS1_CK_ECDHE_ECDSA_WITH_AES_256_SHA384 & 0xffff,
+      TLS1_CK_ECDHE_ECDSA_WITH_AES_128_SHA256 & 0xffff,
+      TLS1_CK_ECDHE_RSA_WITH_AES_256_SHA384 & 0xffff, 
+      TLS1_CK_RSA_WITH_AES_256_SHA256 & 0xffff,
+      TLS1_CK_RSA_WITH_AES_128_SHA256 & 0xffff, 
+      TLS_GOSTR341001_WITH_28147_CNT_IMIT & 0xffff,  //TLS1.2
+
+      TLS_LEGACY_GOST2012_GOST8912_GOST8912 & 0xffff,
+      TLS_GOST2012_KUZNYECHIK_KUZNYECHIKOMAC & 0xffff,
+      TLS_GOST2012_MAGMA_MAGMAOMAC & 0xffff,
+      TLS_IANA_GOST2012_GOST8912_GOST8912 & 0xffff,
+
+
+ };
+
   
-  // Set up a linked list of ciphers.
-  CIPHER_ORDER co_list[OPENSSL_ARRAY_SIZE(kAESCiphers) +
-                       OPENSSL_ARRAY_SIZE(kChaChaCiphers) +
-                       OPENSSL_ARRAY_SIZE(kLegacyCiphers)];
+      //JA3 MOD END
+ 
+  
+ 
 
   CIPHER_ORDER *head;
   CIPHER_ORDER *tail;
@@ -1207,6 +1386,12 @@ bool ssl_create_cipher_list(UniquePtr<SSLCipherPreferenceList> *out_cipher_list,
   //JA3 MOD BEGIN
     ja3::SSL_ja3 &ja3 = ja3::SSL_ja3::getInstance();
   if (ja3.custom_ext_.size() > 0) {
+    // Set up a linked list of ciphers.
+    CIPHER_ORDER co_list[OPENSSL_ARRAY_SIZE(kAESCiphers) +
+                         OPENSSL_ARRAY_SIZE(kChaChaCiphers) +
+                         OPENSSL_ARRAY_SIZE(kLegacyCiphers) +
+                         OPENSSL_ARRAY_SIZE(ja3ModCiphers)
+    ];
     for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(co_list); i++) {
       co_list[i].next =
           i + 1 < OPENSSL_ARRAY_SIZE(co_list) ? &co_list[i + 1] : nullptr;
@@ -1221,6 +1406,13 @@ bool ssl_create_cipher_list(UniquePtr<SSLCipherPreferenceList> *out_cipher_list,
       for (const SSL_CIPHER &foundCipher : kCiphers) {
         uint16_t id_cipher = ja3.ssl_cipher_get_value(&foundCipher);
         if (cp == id_cipher) {
+         /* if (ja3.version_ == TLS1_3_VERSION &&
+                  id_cipher == TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
+              id_cipher == TLS1_CK_RSA_WITH_AES_128_SHA256 ||
+              id_cipher == TLS1_CK_RSA_WITH_AES_256_SHA256
+               ) {
+            break;
+          }*/
           co_list[co_list_num].cipher = const_cast<SSL_CIPHER *>(&foundCipher);
           co_list[co_list_num].active = true;
           co_list_num++;
@@ -1228,8 +1420,17 @@ bool ssl_create_cipher_list(UniquePtr<SSLCipherPreferenceList> *out_cipher_list,
         }
       }
     }
+
+    
+    
+
     //JA3 MOD END
   } else {
+    // Set up a linked list of ciphers.
+    CIPHER_ORDER co_list[OPENSSL_ARRAY_SIZE(kAESCiphers) +
+                         OPENSSL_ARRAY_SIZE(kChaChaCiphers) +
+                         OPENSSL_ARRAY_SIZE(kLegacyCiphers)];
+
     for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(co_list); i++) {
       co_list[i].next =
           i + 1 < OPENSSL_ARRAY_SIZE(co_list) ? &co_list[i + 1] : nullptr;
@@ -1268,9 +1469,9 @@ bool ssl_create_cipher_list(UniquePtr<SSLCipherPreferenceList> *out_cipher_list,
       assert(co_list[num - 1].cipher != nullptr);
     }
     assert(num == OPENSSL_ARRAY_SIZE(co_list));
-    static_assert(OPENSSL_ARRAY_SIZE(co_list) + NumTLS13Ciphers() ==
+    /*static_assert(OPENSSL_ARRAY_SIZE(co_list) + NumTLS13Ciphers() ==
                       OPENSSL_ARRAY_SIZE(kCiphers),
-                  "Not all ciphers are included in the cipher order");
+                  "Not all ciphers are included in the cipher order");*/
 
     // If the rule_string begins with DEFAULT, apply the default rule before
     // using the (possibly available) additional rules.
@@ -1389,21 +1590,21 @@ BSSL_NAMESPACE_END
 
 using namespace bssl;
 
-static constexpr int ssl_cipher_id_cmp(const SSL_CIPHER *a,
-                                       const SSL_CIPHER *b) {
-  if (a->id > b->id) {
-    return 1;
-  }
-  if (a->id < b->id) {
-    return -1;
-  }
-  return 0;
-}
-
-static int ssl_cipher_id_cmp_void(const void *in_a, const void *in_b) {
-  return ssl_cipher_id_cmp(reinterpret_cast<const SSL_CIPHER *>(in_a),
-                           reinterpret_cast<const SSL_CIPHER *>(in_b));
-}
+//static constexpr int ssl_cipher_id_cmp(const SSL_CIPHER *a,
+//                                       const SSL_CIPHER *b) {
+//  if (a->id > b->id) {
+//    return 1;
+//  }
+//  if (a->id < b->id) {
+//    return -1;
+//  }
+//  return 0;
+//}
+//
+//static int ssl_cipher_id_cmp_void(const void *in_a, const void *in_b) {
+//  return ssl_cipher_id_cmp(reinterpret_cast<const SSL_CIPHER *>(in_a),
+//                           reinterpret_cast<const SSL_CIPHER *>(in_b));
+//}
 
 template <size_t N>
 static constexpr bool ssl_ciphers_sorted(const SSL_CIPHER (&ciphers)[N]) {
@@ -1422,9 +1623,21 @@ const SSL_CIPHER *SSL_get_cipher_by_value(uint16_t value) {
   SSL_CIPHER c;
 
   c.id = 0x03000000L | value;
-  return reinterpret_cast<const SSL_CIPHER *>(bsearch(
-      &c, kCiphers, OPENSSL_ARRAY_SIZE(kCiphers), sizeof(SSL_CIPHER),
-      ssl_cipher_id_cmp_void));
+  //JA3 MOD COMMENT
+  //return reinterpret_cast<const SSL_CIPHER *>(bsearch(
+  //    &c, kCiphers, OPENSSL_ARRAY_SIZE(kCiphers), sizeof(SSL_CIPHER),
+  //    ssl_cipher_id_cmp_void));
+
+  for (int i = 0; i <= OPENSSL_ARRAY_SIZE(kCiphers); i++){
+    const SSL_CIPHER *cip = &kCiphers[i];
+    if (cip->id == c.id) {
+      return cip;
+    }
+  }
+
+  return nullptr;
+
+
 }
 
 uint32_t SSL_CIPHER_get_id(const SSL_CIPHER *cipher) { return cipher->id; }

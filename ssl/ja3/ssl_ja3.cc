@@ -330,12 +330,13 @@ void SSL_ja3::configureExtensions(SSL *const ssl) {
     //SSL_CTX_set_psk_client_callback(ctx, pskCallback);
 
 
-    if (isExtensionActive(TLSEXT_TYPE_pre_shared_key)) {
+     if (isExtensionActive(TLSEXT_TYPE_pre_shared_key)) {
       SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_BOTH);
       SSL_SESSION *session = SSL_SESSION_new(ctx);
       SSL_SESSION_set_protocol_version(session, TLS1_3_VERSION);
-
-      const SSL_CIPHER *cipher = SSL_get_cipher_by_value(0x8D);
+      
+     const SSL_CIPHER *cipher = SSL_get_cipher_by_value(
+          0xC036);
       std::vector<uint8_t> ticket;
       char hex_characters[] = {'0', '1', '2', '3', '4', '5', '6', '7',
                                '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -346,7 +347,11 @@ void SSL_ja3::configureExtensions(SSL *const ssl) {
       session->cipher = cipher;
       SSL_CTX_add_session(ctx, session);
       SSL_set_session(ssl, session);
-    }
+    }/**/
+
+
+   SSL_set_max_proto_version(ssl,version_);//TLS1_2_VERSION
+   SSL_CTX_set_max_proto_version(ssl->ctx.get(), version_); //TLS1_2_VERSION
       
 
 }
